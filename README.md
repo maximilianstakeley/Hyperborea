@@ -1,2 +1,2 @@
 # Hyperborea
-Brain-Computer Interface motherboard, microcontroller, chip, software, and AI
+Brain-Computer Interface hardware, software, and AI.
