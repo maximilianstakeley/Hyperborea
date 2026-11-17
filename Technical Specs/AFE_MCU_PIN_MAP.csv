@@ -1,0 +1,9 @@
+U50_pad,MCU_pin,AF_or_mode,PCB_net,firmware_role
+1,PE2,AF5_SPI4_SCK,AFE_SPI_SCK_MCU,AFE SPI clock
+3,PE4,GPIO_OUTPUT,AFE_SPI_CS_MCU,AFE chip select active low
+4,PE5,AF5_SPI4_MISO,AFE_SPI_MISO,AFE SPI data to MCU
+5,PE6,AF5_SPI4_MOSI_MCU,AFE_SPI_MOSI_MCU,AFE SPI data from MCU
+34,PA0,GPIO_INPUT,AFE_DRDY,AFE data ready active low
+49,PF11,GPIO_OUTPUT,AFE_START,AFE START GPIO; low=stop, high=start
+50,PF12,GPIO_OUTPUT,AFE_RESET,AFE reset active low
+53,PF13,GPIO_OUTPUT,AFE_PWDN,AFE power down active low

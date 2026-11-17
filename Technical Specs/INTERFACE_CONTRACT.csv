@@ -1,0 +1,13 @@
+Signal,Function,Software interface,Implementation status
+AFE_SPI_CS,ADS1299 chip select,hb_hal_port.chip_select,Rev27 U50 pad 3 / PE4 GPIO; CubeMX GPIO init required
+AFE_SPI_SCK,ADS1299 serial clock,SPI4 in board adapter,Rev27 U50 pad 1 / PE2 AF5; SPI4 mode 1 and clock tree require CubeMX setup
+AFE_SPI_MOSI,ADS1299 command/data in,SPI4 in board adapter,Rev27 U50 pad 5 / PE6 AF5; CubeMX pin mux required
+AFE_SPI_MISO,ADS1299 data out,SPI4 in board adapter,Rev27 U50 pad 4 / PE5 AF5; CubeMX pin mux required
+AFE_DRDY,AFE data-ready active low,hb_hal_port.data_ready_is_low,Rev27 U50 pad 34 / PA0 GPIO input; interrupt/polling configuration pending
+AFE_RESET,AFE active-low reset,hb_hal_port.afe_reset,Rev27 U50 pad 50 / PF12 GPIO output
+AFE_PWDN,AFE active-low power-down,hb_hal_port.afe_power_down,Rev27 U50 pad 53 / PF13 GPIO output
+AFE_START,AFE conversion-start input,hb_hal_port.set_start_active,Rev27 U50 pad 49 / PF11; low=stop, high=start
+AFE_CLK_2M048,AFE 2.048 MHz clock,External hardware clock,Present in schematic; oscillator population/frequency/duty/startup require bench verification
+W25Q128JVSIQ,128-Mbit QSPI flash,hb_w25q128 API + STM32H7 QSPI adapter,Portable driver and adapter source added; QSPI pin mux/clock and persistent log remain unverified
+USB3320+ADuM3166,USB PHY and isolation,USB CDC bridge + host capture,Bridge and host tools added; generated USB middleware/endpoint/isolator throughput require validation
+J1,18-pin electrode interface,No software enable,Rev27 DNP / SAFETY HOLD

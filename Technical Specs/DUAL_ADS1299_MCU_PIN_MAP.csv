@@ -1,0 +1,13 @@
+U50_pad,MCU_pin,AF_or_mode,PCB_net,firmware_role,status
+1,PE2,AF5_SPI4_SCK,AFE_SPI_SCK_MCU,Shared ADC SPI clock,Existing Rev29
+3,PE4,GPIO_OUTPUT,AFE_SPI_CS_MCU,U1 active-low chip select,Existing Rev29
+4,PE5,AF5_SPI4_MISO,AFE_SPI_MISO,Shared ADC SPI MISO,Existing Rev29
+5,PE6,AF5_SPI4_MOSI,AFE_SPI_MOSI_MCU,Shared ADC SPI MOSI,Existing Rev29
+34,PA0,GPIO_INPUT,AFE_DRDY,U1 data-ready active low,Existing Rev29
+49,PF11,GPIO_OUTPUT,AFE_START,Shared START to both ADCs,Existing Rev29
+50,PF12,GPIO_OUTPUT,AFE_RESET,U1 active-low reset,Existing Rev29
+53,PF13,GPIO_OUTPUT,AFE_PWDN,U1 power-down control,Existing Rev29
+48,PB2,GPIO_OUTPUT,AFE2_SPI_CS_MCU,U109 active-low chip select,New net assignment; planned U109 not yet placed
+134,PB4,GPIO_OUTPUT,AFE2_RESET_MCU,U109 active-low reset,New net assignment; planned U109 not yet placed
+136,PB6,GPIO_OUTPUT,AFE2_PWDN_MCU,U109 power-down control,New net assignment; planned U109 not yet placed
+137,PB7,GPIO_INPUT,AFE2_DRDY_MCU,U109 data-ready active low,New net assignment; planned U109 not yet placed
