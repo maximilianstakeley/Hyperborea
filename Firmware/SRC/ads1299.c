@@ -117,7 +117,7 @@ static hb_afe_result_t fail_initialization(hb_ads1299_t *afe,
     return result;
 }
 
-hb_afe_result_t hb_ads1299_init(hb_ads1299_t *afe, hb_hal_port_t *port,
+static hb_afe_result_t initialize(hb_ads1299_t *afe, hb_hal_port_t *port, bool cycle_lines,
                                 const hb_afe_config_t *requested) {
     if (afe == NULL || !required_port_callbacks_present(port))
         return HB_AFE_ERR_ARGUMENT;
@@ -134,8 +134,10 @@ hb_afe_result_t hb_ads1299_init(hb_ads1299_t *afe, hb_hal_port_t *port,
     afe->config = config;
 
     /* Active-low RESET and PWDN: hold both asserted until rails are good. */
-    port->afe_power_down(port->context, true);
-    port->afe_reset(port->context, true);
+    if (cycle_lines) {
+        port->afe_power_down(port->context, true);
+        port->afe_reset(port->context, true);
+    }
     port->idle(port->context);
     if (!port->rails_good(port->context))
         return fail_initialization(afe, HB_AFE_ERR_RAILS, "AFE rails outside limits");
@@ -171,12 +173,8 @@ hb_afe_result_t hb_ads1299_init(hb_ads1299_t *afe, hb_hal_port_t *port,
         return fail_initialization(afe, HB_AFE_ERR_ID, "ADS1299 device ID mismatch");
     afe->device_id = id;
 
-    /* CONFIG1: standard multi-device mode, high-resolution, DR selects rate. */
-    /* Standard multi-device topology: DAISY_EN=0 because each ADS1299 has
-       its own chip select and DOUT path. HR=1; DR[2:0]=rate. 0x90 would
-       incorrectly enable daisy-chain mode and is incompatible with this
-       independent-CS, shared-SPI implementation. */
-    const uint8_t config1 = (uint8_t)(0x10u | rate);
+    /* TI table 13: bits 7 and 4 must be one. Single frame per CS. */
+    const uint8_t config1 = (uint8_t)(0x90u | rate);
     const uint8_t config2 = CONFIG2_DEFAULT_TEST_DISABLED;
     const uint8_t config3 = config.enable_internal_reference_buffer
                                 ? CONFIG3_RESERVED_AND_REFBUF_ON : 0x60u;
@@ -264,6 +262,11 @@ hb_afe_result_t hb_ads1299_read_sample(hb_ads1299_t *afe,
         afe->port->idle(afe->port->context);
     }
 
+    return hb_ads1299_read_ready_frame(afe, sample);
+}
+
+hb_afe_result_t hb_ads1299_read_ready_frame(hb_ads1299_t *afe, hb_ads1299_sample_t *sample) {
+    if (!afe || !sample || !afe->streaming) return HB_AFE_ERR_STATE;
     uint8_t tx[HB_ADS1299_FRAME_BYTES] = {0u};
     uint8_t rx[HB_ADS1299_FRAME_BYTES] = {0u};
     if (!transfer(afe, tx, rx, sizeof tx)) return HB_AFE_ERR_SPI;
@@ -274,4 +277,14 @@ hb_afe_result_t hb_ads1299_read_sample(hb_ads1299_t *afe,
     }
     sample->timestamp_ms = afe->port->millis(afe->port->context);
     return HB_AFE_OK;
+}
+
+hb_afe_result_t hb_ads1299_init(hb_ads1299_t *afe, hb_hal_port_t *port,
+                                const hb_afe_config_t *config) {
+    return initialize(afe, port, true, config);
+}
+
+hb_afe_result_t hb_ads1299_init_released(hb_ads1299_t *afe, hb_hal_port_t *port,
+                                         const hb_afe_config_t *config) {
+    return initialize(afe, port, false, config);
 }

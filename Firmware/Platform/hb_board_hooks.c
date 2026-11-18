@@ -4,6 +4,9 @@
  * The board must also provide rail monitoring, VCAP1 readiness and fault UI.
  */
 #include "main.h"
+#ifdef HB_BOARD_REV16
+#include "hb_rev16_control.h"
+#endif
 #include "hb/acquisition.h"
 #include "hb/w25q128.h"
 #include "hb_stm32h7_port.h"
@@ -33,7 +36,11 @@ bool hb_board_packet_sink(void *context, const uint8_t *packet, size_t length) {
 }
 bool hb_board_start_requested(void) { return hb_usb_cdc_take_start_request(); }
 bool hb_board_stop_requested(void) { return hb_usb_cdc_take_stop_request(); }
-void hb_board_service(void) { hb_usb_cdc_service_tx(); }
+void hb_board_service(void) {
+#ifdef HB_BOARD_REV16
+    hb_rev16_heartbeat();
+#endif
+    hb_usb_cdc_service_tx(); }
 void hb_board_idle(void) { __WFI(); }
 
 /* Optional storage initialization. Call from a lower-priority task only after

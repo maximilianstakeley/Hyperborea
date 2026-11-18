@@ -19,9 +19,20 @@ hb_afe_result_t hb_dual_ads1299_init(hb_dual_ads1299_t *dual,
     hb_hal_port_t *p1, hb_hal_port_t *p2, const hb_afe_config_t *config) {
     if (!dual || !ports_are_synchronous(p1, p2)) return HB_AFE_ERR_ARGUMENT;
     memset(dual, 0, sizeof *dual);
-    hb_afe_result_t r = hb_ads1299_init(&dual->afe[0], p1, config);
+    /* Assert both banks first. Their reset and power-down pins may be shared. */
+    p1->afe_power_down(p1->context, true);
+    p2->afe_power_down(p2->context, true);
+    p1->afe_reset(p1->context, true);
+    p2->afe_reset(p2->context, true);
+    if (!p1->rails_good || !p2->rails_good || !p1->rails_good(p1->context) ||
+        !p2->rails_good(p2->context)) return HB_AFE_ERR_RAILS;
+    p1->afe_power_down(p1->context, false);
+    p2->afe_power_down(p2->context, false);
+    p1->afe_reset(p1->context, false);
+    p2->afe_reset(p2->context, false);
+    hb_afe_result_t r = hb_ads1299_init_released(&dual->afe[0], p1, config);
     if (r != HB_AFE_OK) return r;
-    r = hb_ads1299_init(&dual->afe[1], p2, config);
+    r = hb_ads1299_init_released(&dual->afe[1], p2, config);
     if (r != HB_AFE_OK) {
         (void)hb_ads1299_stop(&dual->afe[0]);
         dual->afe[0].initialized = false;
@@ -72,10 +83,12 @@ hb_afe_result_t hb_dual_ads1299_read(hb_dual_ads1299_t *dual,
     }
     const uint32_t paired_timestamp = p1->micros(p1->context);
     hb_ads1299_sample_t s1, s2;
-    hb_afe_result_t r = hb_ads1299_read_sample(&dual->afe[0], &s1, timeout_ms);
+    hb_afe_result_t r = hb_ads1299_read_ready_frame(&dual->afe[0], &s1);
     if (r != HB_AFE_OK) return r;
-    r = hb_ads1299_read_sample(&dual->afe[1], &s2, timeout_ms);
+    r = hb_ads1299_read_ready_frame(&dual->afe[1], &s2);
     if (r != HB_AFE_OK) return r;
+    if ((uint32_t)(p1->micros(p1->context) - paired_timestamp) >=
+        1000000u / dual->afe[0].config.sample_rate) return HB_AFE_ERR_TIMEOUT;
     out->timestamp_us = paired_timestamp;
     out->status24[0] = s1.status24;
     out->status24[1] = s2.status24;

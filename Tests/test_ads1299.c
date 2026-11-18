@@ -68,14 +68,14 @@ int main(void) {
     assert(hb_acquisition_init(&acq,&port,&cfg,mock_sink,&mock)==HB_AFE_OK);
     assert(acq.afe.initialized);
     assert(mock.delayed_ms >= 280u); /* POR + conservative internal-reference settle */
-    assert(mock.regs[0x01]==0x14); /* HR=1, DAISY_EN=0, 1 kSPS */
-    assert((mock.regs[0x01] & 0x80u)==0u); /* independent-CS standard topology */
+    assert(mock.regs[0x01]==0x94); /* HR=1, DAISY_EN=0, 1 kSPS */
+    assert((mock.regs[0x01] & 0x40u)==0u); /* independent-CS standard topology */
     assert(mock.regs[0x02]==0xC0);
     assert(mock.regs[0x03]==0xE0); /* reference buffer on; bias remains off */
     for (unsigned i=0;i<8;i++) assert(mock.regs[0x05+i]==0x60);
     /* Verify the three requested rates at the register level. */
     const hb_afe_rate_t rates[] = {HB_AFE_RATE_250_SPS, HB_AFE_RATE_500_SPS, HB_AFE_RATE_1000_SPS};
-    const uint8_t expected_config1[] = {0x16u, 0x15u, 0x14u};
+    const uint8_t expected_config1[] = {0x96u, 0x95u, 0x94u};
     for (unsigned i = 0; i < 3u; ++i) {
         mock_t rate_mock = {0}; rate_mock.regs[0] = 0x1Eu; rate_mock.rails = true; rate_mock.drdy = true;
         hb_hal_port_t rate_port = {&rate_mock,mock_spi,mock_cs,mock_reset,mock_pwdn,mock_drdy,
@@ -84,7 +84,7 @@ int main(void) {
         hb_ads1299_t rate_afe;
         assert(hb_ads1299_init(&rate_afe, &rate_port, &rate_cfg) == HB_AFE_OK);
         assert(rate_mock.regs[0x01] == expected_config1[i]);
-        assert((rate_mock.regs[0x01] & 0x80u) == 0u);
+        assert((rate_mock.regs[0x01] & 0x40u) == 0u);
     }
     assert(mock.last_command==0x10); /* RDATAC enabled while conversions stopped */
     assert(mock.start_inactive && !mock.start_active);
