@@ -42,6 +42,7 @@ static bool spi_for(dual_mock_t *m, unsigned device, const uint8_t *tx,
             rx[offset + 1u] = (uint8_t)(value >> 8);
             rx[offset + 2u] = (uint8_t)value;
         }
+        m->drdy[0] = m->drdy[1] = false; /* first SCLK can release ready */
         ++m->frame_reads[device];
         return true;
     }
@@ -84,8 +85,8 @@ int main(void) {
     assert(cfg.sample_rate == HB_AFE_RATE_1000_SPS);
     assert(hb_dual_acquisition_init(&acq, &p0, &p1, &cfg, packet_sink, &sink) == HB_AFE_OK);
     assert(acq.dual.initialized);
-    assert(mock.regs[0][0x01] == 0x14u && mock.regs[1][0x01] == 0x14u);
-    assert((mock.regs[0][0x01] & 0x80u) == 0u && (mock.regs[1][0x01] & 0x80u) == 0u);
+    assert(mock.regs[0][0x01] == 0x94u && mock.regs[1][0x01] == 0x94u);
+    assert((mock.regs[0][0x01] & 0x40u) == 0u && (mock.regs[1][0x01] & 0x40u) == 0u);
     assert(mock.regs[0][0x03] == mock.regs[1][0x03]);
     mock.start_calls = 0u;
     assert(hb_dual_acquisition_start(&acq) == HB_AFE_OK);

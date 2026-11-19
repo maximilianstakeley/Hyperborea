@@ -12,6 +12,10 @@
 #include <string.h>
 
 static hb_packet_queue_t g_tx_queue;
+#ifdef HB_BOARD_REV16
+#include "hb_rev16_control.h"
+static atomic_bool g_ack_request;
+#endif
 static atomic_bool g_start_request;
 static atomic_bool g_stop_request;
 static char g_command[8];
@@ -39,6 +43,10 @@ void hb_usb_cdc_receive_bytes(const uint8_t *data, size_t length) {
         if (ch == '\r') continue;
         if (ch == '\n') {
             if (!g_command_overflow) {
+#ifdef HB_BOARD_REV16
+                if (g_command_length == 3u && memcmp(g_command, "ACK", 3u) == 0)
+                    atomic_store(&g_ack_request, true);
+#endif
                 if (g_command_length == 5u && memcmp(g_command, "START", 5u) == 0)
                     atomic_store_explicit(&g_start_request, true, memory_order_release);
                 else if (g_command_length == 4u && memcmp(g_command, "STOP", 4u) == 0)
@@ -64,10 +72,18 @@ bool hb_usb_cdc_take_stop_request(void) {
 /* Call periodically from the main loop. Queue head stays locked until the
    CDC transmit-complete callback confirms the stack has released its buffer. */
 void hb_usb_cdc_service_tx(void) {
+#ifdef HB_BOARD_REV16
+    if (atomic_exchange(&g_ack_request, false)) hb_rev16_acknowledge();
+#endif
     const uint8_t *packet = NULL;
     size_t length = 0u;
     if (!hb_packet_queue_begin_tx(&g_tx_queue, &packet, &length)) return;
-    const uint8_t result = CDC_Transmit_HS((uint8_t *)packet, (uint16_t)length);
+    #ifdef HB_BOARD_REV16
+    const uint8_t result = CDC_Transmit_FS
+#else
+    const uint8_t result = CDC_Transmit_HS
+#endif
+    ((uint8_t *)packet, (uint16_t)length);
     if (result != USBD_OK) hb_packet_queue_submit_failed(&g_tx_queue);
 }
 

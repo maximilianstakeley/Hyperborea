@@ -15,7 +15,7 @@ typedef struct {
     bool initialized;
     bool streaming;
 } hb_dual_ads1299_t;
-/* The two ports must use distinct CS, RESET, PWDN and DRDY signals. Both
+/* The two ports must use distinct CS and DRDY signals. RESET and PWDN may be shared. Both
  * START callbacks must address the same physical START net and GPIO context.
  * Both devices must receive the same external 2.048 MHz clock. */
 hb_afe_result_t hb_dual_ads1299_init(hb_dual_ads1299_t *dual,

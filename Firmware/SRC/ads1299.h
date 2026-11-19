@@ -52,6 +52,9 @@ typedef struct {
     bool streaming;
 } hb_ads1299_t;
 
+/* Configure a device after coordinated hardware reset of both banks. */
+hb_afe_result_t hb_ads1299_init_released(hb_ads1299_t *, hb_hal_port_t *, const hb_afe_config_t *);
+hb_afe_result_t hb_ads1299_read_ready_frame(hb_ads1299_t *, hb_ads1299_sample_t *);
 hb_afe_config_t hb_ads1299_default_config(void);
 hb_afe_result_t hb_ads1299_init(hb_ads1299_t *afe, hb_hal_port_t *port,
                                 const hb_afe_config_t *config);
